@@ -3,6 +3,7 @@ package com.ratings.feignclient;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.ratings.helper.ApiResponse;
 
@@ -11,7 +12,7 @@ import com.ratings.helper.ApiResponse;
 public interface HotelClient {
 
 	@GetMapping("/api/v1/hotel/{id}")
-	public ApiResponse getHotelById(@PathVariable Integer id);	
+	public ApiResponse getHotelById(@RequestHeader(value = "Authorization", required = true) String token ,@PathVariable Integer id);	
 	
 	
 	

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.naseer.security.library.payloads.SharedData;
 import com.ratings.dto.HotelDto;
 import com.ratings.dto.RatingDto;
 import com.ratings.feignclient.HotelClient;
@@ -30,6 +31,7 @@ public class RatingServiceImpl implements RatingService {
 	@Autowired
 	private HotelClient hotelClient;
 	
+	
 	@Override
 	public ApiResponse addRating(RatingDto ratingDto) {
 		Rating rating = ratingRepository.save(modelMapper.map(ratingDto, Rating.class));
@@ -44,10 +46,13 @@ public class RatingServiceImpl implements RatingService {
 	
 	@Override
 	public ApiResponse getRatingss() {
+		
+		String token = SharedData.getSharedDataMap().get("jwtToken");
+		
 		List<Rating> ratings = ratingRepository.findAll();
 		List<RatingDto> ratingDtos = ratings.stream().map(rating-> modelMapper.map(rating, RatingDto.class)).collect(Collectors.toList());
 		ratingDtos.forEach(rating-> {
-			ApiResponse hotelResponse = hotelClient.getHotelById(rating.getHotelId());
+			ApiResponse hotelResponse = hotelClient.getHotelById(token,rating.getHotelId());
 			System.out.println(hotelResponse);
 			
 			Object data = hotelResponse.getData();
@@ -67,10 +72,13 @@ public class RatingServiceImpl implements RatingService {
 
 	@Override
 	public ApiResponse getRatingsByHotelId(Integer hotelId0) {
+		String token = SharedData.getSharedDataMap().get("jwtToken");
+
+		
 		List<Rating> hotelRatings = ratingRepository.findByHotelId(hotelId0);
 		List<RatingDto> ratings = Arrays.asList(modelMapper.map(hotelRatings, RatingDto[].class));
 		ratings.forEach(rating-> {
-			ApiResponse hotelResponse = hotelClient.getHotelById(rating.getHotelId());
+			ApiResponse hotelResponse = hotelClient.getHotelById(token,rating.getHotelId());
 			System.out.println(hotelResponse);
 			
 			Object data = hotelResponse.getData();
@@ -83,10 +91,12 @@ public class RatingServiceImpl implements RatingService {
 
 	@Override
 	public ApiResponse getRatingsByUserId(Integer userId) {
+		String token = SharedData.getSharedDataMap().get("jwtToken");
+
 		List<Rating> userRatings = ratingRepository.findByUserId(userId);
 		List<RatingDto> ratings = Arrays.asList(modelMapper.map(userRatings, RatingDto[].class));
 		ratings.forEach(rating-> {
-			ApiResponse hotelResponse = hotelClient.getHotelById(rating.getHotelId());
+			ApiResponse hotelResponse = hotelClient.getHotelById(token,rating.getHotelId());
 			System.out.println(hotelResponse);
 			
 			Object data = hotelResponse.getData();

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.naseer.security.library.payloads.SharedData;
 import com.user.dto.RatingDto;
 import com.user.dto.UserDto;
 import com.user.entity.User;
@@ -49,15 +50,18 @@ public class UserServiceImpl<T> implements UserService<T> {
 	@Override
 	public T getAllUsers(String email) throws JsonMappingException, JsonProcessingException {
 
+		String token = SharedData.getSharedDataMap().get("jwtToken");
+		
 		if (email == null) {
 			List<User> users = userRepository.findAll();
+			System.out.println(users);
 
 			if (!users.isEmpty()) {
 				
 				List<UserDto> userDtos = Arrays.asList(modelMapper.map(users, UserDto[].class));
 				ObjectMapper objectMapper = new ObjectMapper();
 				
-				List data =	(List) ratingClient.getRatings().getBody().getData();
+				List data =	(List) ratingClient.getRatings(token).getBody().getData();
 				List<RatingDto> dtos = (List<RatingDto>) data.stream().map(t -> {
 					return  objectMapper.convertValue(t, RatingDto.class);
 				}).collect(Collectors.toList());
@@ -99,10 +103,13 @@ public class UserServiceImpl<T> implements UserService<T> {
 
 	@Override
 	public T getUserById(Integer id) {
+		
+		String token = SharedData.getSharedDataMap().get("jwtToken");
+		
 		Optional<User> user = userRepository.findById(id);
 
 		if (user.isPresent()) {
-			ArrayList<RatingDto> ratingDtos = (ArrayList<RatingDto>) ratingClient.getRatingsByUserId(id).getBody().getData();
+			ArrayList<RatingDto> ratingDtos = (ArrayList<RatingDto>) ratingClient.getRatingsByUserId(id,token).getBody().getData();
 			UserDto userDto = modelMapper.map(user, UserDto.class);
 			userDto.setRatings(ratingDtos);
 			return (T) new ApiResponse(userDto, "SUCCESS");
